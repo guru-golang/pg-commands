@@ -11,7 +11,7 @@ import (
 var (
 	// PGDumpCmd is the path to the `pg_dump` executable
 	PGDumpCmd           = "pg_dump"
-	PGDumpStdOpts       = []string{"--no-owner", "--no-acl", "--clean"}
+	PGDumpStdOpts       = []string{"--clean"}
 	PGDumpDefaultFormat = "c"
 )
 
