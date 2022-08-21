@@ -12,7 +12,7 @@ alias:
     docker:
       - image: cimg/go:1.19
         user: root
-      - image: habx/postgres
+      - image: guru-golang/postgres
         name: postgres
         environment:
           POSTGRES_USER: test
@@ -51,7 +51,7 @@ alias:
 jobs:
   static-test:
     <<: *docker_golang_configuration
-    working_directory: /go/src/github.com/habx/pg-commands
+    working_directory: /go/src/github.com/guru-golang/pg-commands
     steps:
       - checkout
       - *golang_with_cache_restore_deps
@@ -67,7 +67,7 @@ jobs:
             golangci-lint run
   test:
     <<: *docker_golang_with_postgres_configuration
-    working_directory: /go/src/github.com/habx/pg-commands
+    working_directory: /go/src/github.com/guru-golang/pg-commands
     steps:
       - checkout
       - *golang_with_cache_restore_deps

@@ -4,7 +4,7 @@ import (
 	"os"
 	"strconv"
 
-	pg "github.com/habx/pg-commands"
+	pg "github.com/guru-golang/pg-commands"
 )
 
 func Setup() *pg.Postgres {

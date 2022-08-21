@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "github>habx/devops-repo-shared-configs//renovate/go-lib"
+    "github>guru-golang/devops-repo-shared-configs//renovate/go-lib"
   ]
 }

@@ -1,4 +1,4 @@
-module github.com/habx/pg-commands
+module github.com/guru-golang/pg-commands
 
 go 1.19
 

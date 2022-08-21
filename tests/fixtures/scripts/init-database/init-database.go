@@ -5,8 +5,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/go-pg/pg/v10"
-	"github.com/habx/pg-commands/tests/fixtures"
+	"github.com/guru-golang/pg-commands/tests/fixtures"
 )
 
 func main() {

@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	pg "github.com/habx/pg-commands"
+	pg "github.com/guru-golang/pg-commands"
 )
 
 func main() {

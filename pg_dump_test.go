@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/habx/pg-commands/tests/fixtures"
+	"github.com/guru-golang/pg-commands/tests/fixtures"
 
-	pg "github.com/habx/pg-commands"
-
-	. "github.com/smartystreets/goconvey/convey"
+	pg "github.com/guru-golang/pg-commands"
 )
 
 func TestNewDump(t *testing.T) {
