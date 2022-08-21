@@ -44,11 +44,15 @@ func (x *Restore) Exec(filename string, opts ExecOptions) Result {
 	go func() {
 		result.Output = streamExecOutput(stderrIn, opts)
 	}()
-	cmd.Start()
-	err := cmd.Wait()
+	err := cmd.Start()
+	if err != nil {
+		result.Error = &ResultError{Err: err, CmdOutput: result.Output}
+	}
+	err = cmd.Wait()
 	if exitError, ok := err.(*exec.ExitError); ok {
 		result.Error = &ResultError{Err: err, ExitCode: exitError.ExitCode(), CmdOutput: result.Output}
 	}
+
 	return result
 }
 

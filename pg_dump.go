@@ -11,7 +11,7 @@ import (
 var (
 	// PGDumpCmd is the path to the `pg_dump` executable
 	PGDumpCmd           = "pg_dump"
-	PGDumpStdOpts       = []string{"--no-owner", "--no-acl", "--clean", "--blob"}
+	PGDumpStdOpts       = []string{"--no-owner", "--no-acl", "--clean"}
 	PGDumpDefaultFormat = "c"
 )
 
@@ -50,13 +50,17 @@ func (x *Dump) Exec(opts ExecOptions) Result {
 	go func() {
 		result.Output = streamExecOutput(stderrIn, opts)
 	}()
-	cmd.Start()
-	err := cmd.Wait()
+	err := cmd.Start()
+	if err != nil {
+		result.Error = &ResultError{Err: err, CmdOutput: result.Output}
+	}
+	err = cmd.Wait()
 	if exitError, ok := err.(*exec.ExitError); ok {
 		result.Error = &ResultError{Err: err, ExitCode: exitError.ExitCode(), CmdOutput: result.Output}
 	}
 	return result
 }
+
 func (x *Dump) ResetOptions() {
 	x.Options = []string{}
 }
@@ -104,8 +108,10 @@ func (x *Dump) dumpOptions() []string {
 	if len(x.IgnoreTableData) > 0 {
 		options = append(options, x.IgnoreTableDataToString()...)
 	}
+
 	return options
 }
+
 func (x *Dump) IgnoreTableDataToString() []string {
 	var t []string
 	for _, tables := range x.IgnoreTableData {

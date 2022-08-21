@@ -41,5 +41,6 @@ func (x *Postgres) Parse() []string {
 	if x.Password != "" {
 		x.EnvPassword = fmt.Sprintf(`PGPASSWORD=%v`, x.Password)
 	}
+
 	return options
 }
