@@ -9,10 +9,10 @@ import (
 )
 
 var (
-	// PGDumpCmd is the path to the `pg_dump` executable
-	PGDumpCmd           = "pg_dump"
-	PGDumpStdOpts       = []string{}
-	PGDumpDefaultFormat = "p" // p  c  d  t
+	// DumpCmd is the path to the `pg_dump` executable
+	DumpCmd           = "pg_dump"
+	DumpStdOpts       = []string{}
+	DumpDefaultFormat = "p" // p  c  d  t
 )
 
 // Dump is an `Exporter` interface that backs up a Postgres database via the `pg_dump` command.
@@ -23,7 +23,7 @@ type Dump struct {
 	// Path: setup path dump out
 	Path string
 	// Format: output file format (custom, directory, tar, plain text (default))
-	Format *string
+	Format string
 	// Extra pg_dump x.FullOptions
 	// e.g []string{"--inserts"}
 	Options []string
@@ -35,7 +35,7 @@ type Dump struct {
 }
 
 func NewDump(pg *Postgres) *Dump {
-	return &Dump{Options: PGDumpStdOpts, Postgres: pg}
+	return &Dump{Options: DumpStdOpts, Postgres: pg}
 }
 
 // Exec `pg_dump` of the specified database, and creates a gzip compressed tarball archive.
@@ -44,7 +44,7 @@ func (x *Dump) Exec(opts ExecOptions) Result {
 	result.File = x.GetFileName()
 	options := append(x.dumpOptions(), fmt.Sprintf(`-f %s%v`, x.Path, result.File))
 	result.FullCommand = strings.Join(options, " ")
-	cmd := exec.Command(PGDumpCmd, options...)
+	cmd := exec.Command(DumpCmd, options...)
 	cmd.Env = append(os.Environ(), x.EnvPassword)
 	stderrIn, _ := cmd.StderrPipe()
 	go func() {
@@ -82,7 +82,7 @@ func (x *Dump) GetFileName() string {
 }
 
 func (x *Dump) SetupFormat(f string) {
-	x.Format = &f
+	x.Format = f
 }
 
 func (x *Dump) SetPath(path string) {
@@ -97,10 +97,10 @@ func (x *Dump) dumpOptions() []string {
 	options := x.Options
 	options = append(options, x.Postgres.Parse()...)
 
-	if x.Format != nil {
-		options = append(options, fmt.Sprintf(`-F%v`, *x.Format))
+	if x.Format != "" {
+		options = append(options, fmt.Sprintf(`-F%v`, x.Format))
 	} else {
-		options = append(options, fmt.Sprintf(`-F%v`, PGDumpDefaultFormat))
+		options = append(options, fmt.Sprintf(`-F%v`, DumpDefaultFormat))
 	}
 	if x.Verbose {
 		options = append(options, "-v")
