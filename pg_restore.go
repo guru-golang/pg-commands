@@ -84,9 +84,9 @@ func (x *Restore) restoreOptions() []string {
 	options = append(options, x.Postgres.Parse()...)
 
 	if x.Format != "" {
-		options = append(options, fmt.Sprintf(`-F%v`, x.Format))
+		options = append(options, fmt.Sprintf(`-F %v`, x.Format))
 	} else {
-		options = append(options, fmt.Sprintf(`-F%v`, RestoreDefaultFormat))
+		options = append(options, fmt.Sprintf(`-F %v`, RestoreDefaultFormat))
 	}
 	if x.Role != "" {
 		options = append(options, fmt.Sprintf(`--role=%v`, x.Role))

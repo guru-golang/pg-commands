@@ -98,9 +98,9 @@ func (x *Dump) dumpOptions() []string {
 	options = append(options, x.Postgres.Parse()...)
 
 	if x.Format != "" {
-		options = append(options, fmt.Sprintf(`-F%v`, x.Format))
+		options = append(options, fmt.Sprintf(`-F %v`, x.Format))
 	} else {
-		options = append(options, fmt.Sprintf(`-F%v`, DumpDefaultFormat))
+		options = append(options, fmt.Sprintf(`-F %v`, DumpDefaultFormat))
 	}
 	if x.Verbose {
 		options = append(options, "-v")
