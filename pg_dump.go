@@ -40,9 +40,9 @@ func NewDump(pg *Postgres) *Dump {
 
 // Exec `pg_dump` of the specified database, and creates a gzip compressed tarball archive.
 func (x *Dump) Exec(opts ExecOptions) Result {
-	result := Result{Mine: "application/x-tar"}
+	result := Result{Mine: "application/sql"}
 	result.File = x.GetFileName()
-	options := append(x.dumpOptions(), fmt.Sprintf(`-f%s%v`, x.Path, result.File))
+	options := append(x.dumpOptions(), fmt.Sprintf(`-f %s%v`, x.Path, result.File))
 	result.FullCommand = strings.Join(options, " ")
 	cmd := exec.Command(PGDumpCmd, options...)
 	cmd.Env = append(os.Environ(), x.EnvPassword)
@@ -90,7 +90,7 @@ func (x *Dump) SetPath(path string) {
 }
 
 func (x *Dump) newFileName() string {
-	return fmt.Sprintf(`%v_%v.sql.tar.gz`, x.DB, time.Now().Unix())
+	return fmt.Sprintf(`%v_%v.sql`, x.DB, time.Now().Unix())
 }
 
 func (x *Dump) dumpOptions() []string {
