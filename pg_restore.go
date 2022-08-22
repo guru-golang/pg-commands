@@ -2,6 +2,7 @@ package pg_commands
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -40,6 +41,7 @@ func (x *Restore) Exec(filename string, opts ExecOptions) Result {
 	options := append(x.restoreOptions(), fmt.Sprintf("%s%s", x.path, filename))
 	result.FullCommand = strings.Join(options, " ")
 	cmd := exec.Command(RestoreCmd, options...)
+	cmd.Env = append(os.Environ(), x.EnvPassword)
 	stderrIn, _ := cmd.StderrPipe()
 	go func() {
 		result.Output = streamExecOutput(stderrIn, opts)

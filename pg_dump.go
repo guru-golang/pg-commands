@@ -2,6 +2,7 @@ package pg_commands
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -43,6 +44,7 @@ func (x *Dump) Exec(opts ExecOptions) Result {
 	options := append(x.dumpOptions(), fmt.Sprintf(`--file=%s%v`, x.path, result.File))
 	result.FullCommand = strings.Join(options, " ")
 	cmd := exec.Command(DumpCmd, options...)
+	cmd.Env = append(os.Environ(), x.EnvPassword)
 	stderrIn, _ := cmd.StderrPipe()
 	go func() {
 		result.Output = streamExecOutput(stderrIn, opts)
