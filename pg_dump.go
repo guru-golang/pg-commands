@@ -42,7 +42,7 @@ func NewDump(pg *Postgres) *Dump {
 func (x *Dump) Exec(opts ExecOptions) Result {
 	result := Result{Mine: "application/sql"}
 	result.File = x.GetFileName()
-	options := append(x.dumpOptions(), fmt.Sprintf(`-f %s%v`, x.Path, result.File))
+	options := append(x.dumpOptions(), fmt.Sprintf(`--file=%s%v`, x.Path, result.File))
 	result.FullCommand = strings.Join(options, " ")
 	cmd := exec.Command(DumpCmd, options...)
 	cmd.Env = append(os.Environ(), x.EnvPassword)
@@ -98,9 +98,9 @@ func (x *Dump) dumpOptions() []string {
 	options = append(options, x.Postgres.Parse()...)
 
 	if x.Format != "" {
-		options = append(options, fmt.Sprintf(`-F %v`, x.Format))
+		options = append(options, fmt.Sprintf(`--format=%v`, x.Format))
 	} else {
-		options = append(options, fmt.Sprintf(`-F %v`, DumpDefaultFormat))
+		options = append(options, fmt.Sprintf(`--format=%v`, DumpDefaultFormat))
 	}
 	if x.Verbose {
 		options = append(options, "-v")
