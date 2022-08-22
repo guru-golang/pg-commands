@@ -10,7 +10,7 @@ import (
 var (
 	// PGRestoreCmd is the path to the `pg_restore` executable
 	PGRestoreCmd      = "pg_restore"
-	PGDRestoreStdOpts = []string{"--clean", "--exit-on-error"}
+	PGDRestoreStdOpts = []string{"--exit-on-error"}
 )
 
 type Restore struct {
