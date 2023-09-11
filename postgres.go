@@ -1,4 +1,4 @@
-package pg_commands
+package pgcommands
 
 import (
 	"fmt"

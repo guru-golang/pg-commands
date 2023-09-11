@@ -1,0 +1,47 @@
+version: 2.1
+
+# --- Anchor alias ---- #
+alias:
+# ---- Jobs filters ---- #
+  - &filters_only_dev
+    branches:
+      only: dev
+    tags:
+      ignore: /.*/
+  - &filters_only_branch
+    branches:
+      ignore:
+        - dev
+    tags:
+      ignore: /.*/
+
+# --- END --- #
+# --------------------------------------------------- #
+# -------------- DEFINE YOUR WORKFLOW --------------- #
+# --------------------------------------------------- #
+
+orbs:
+  go: habx/golang@0.14.0
+
+workflows:
+  tests:
+    jobs:
+      - go/static-tests:
+          github-config-private-package: false
+          filters:
+            <<: *filters_only_branch
+      - go/tests:
+          github-config-private-package: false
+          filters:
+            <<: *filters_only_branch
+
+  dev:
+    jobs:
+      - go/static-tests:
+          github-config-private-package: false
+          filters:
+            <<: *filters_only_dev
+      - go/tests:
+          github-config-private-package: false
+          filters:
+            <<: *filters_only_dev

@@ -1,4 +1,4 @@
-package pg_commands
+package pgcommands
 
 import (
 	"fmt"
@@ -9,110 +9,103 @@ import (
 )
 
 var (
-	// DumpCmd is the path to the `pg_dump` executable
-	DumpCmd           = "pg_dump"
-	DumpStdOpts       = []string{}
-	DumpDefaultFormat = "p" // p  c  d  t
+	// PGDumpCmd is the path to the `pg_dump` executable
+	PGDumpCmd           = "pg_dump"
+	pgDumpStdOpts       = []string{"--no-owner", "--no-acl", "--clean", "--blob"}
+	pgDumpDefaultFormat = "c"
 )
 
 // Dump is an `Exporter` interface that backs up a Postgres database via the `pg_dump` command.
 type Dump struct {
 	*Postgres
-	// verbose mode
-	verbose bool
-	// path: setup path dump out
-	path string
-	// file: output file
-	file string
-	// format: output file format (custom, directory, tar, plain text (default))
-	format string
+	// Verbose mode
+	Verbose bool
+	// Path: setup path dump out
+	Path string
+	// Format: output file format (custom, directory, tar, plain text (default))
+	Format *string
 	// Extra pg_dump x.FullOptions
 	// e.g []string{"--inserts"}
-	options []string
+	Options []string
 
 	IgnoreTableData []string
+
+	// fileName: output file name
+	fileName string
 }
 
-func NewDump(pg *Postgres) *Dump {
-	return &Dump{options: DumpStdOpts, Postgres: pg}
+func NewDump(pg *Postgres) (*Dump, error) {
+	if !CommandExist(PGDumpCmd) {
+		return nil, &ErrCommandNotFound{Command: PGDumpCmd}
+	}
+
+	return &Dump{Options: pgDumpStdOpts, Postgres: pg}, nil
 }
 
 // Exec `pg_dump` of the specified database, and creates a gzip compressed tarball archive.
 func (x *Dump) Exec(opts ExecOptions) Result {
-	result := Result{Mine: "application/sql"}
-	result.File = x.GetFile()
-	options := append(x.dumpOptions(), fmt.Sprintf(`--file=%s%v`, x.path, result.File))
+	result := Result{Mine: "application/x-tar"}
+	result.File = x.GetFileName()
+	options := append(x.dumpOptions(), fmt.Sprintf(`-f%s%v`, x.Path, result.File))
 	result.FullCommand = strings.Join(options, " ")
-	cmd := exec.Command(DumpCmd, options...)
+	cmd := exec.Command(PGDumpCmd, options...)
 	cmd.Env = append(os.Environ(), x.EnvPassword)
 	stderrIn, _ := cmd.StderrPipe()
-	go func() {
-		result.Output = streamExecOutput(stderrIn, opts)
-	}()
-
-	if err := cmd.Start(); err != nil {
+	go streamOutput(stderrIn, opts, &result)
+	err := cmd.Start()
+	if err != nil {
 		result.Error = &ResultError{Err: err, CmdOutput: result.Output}
 	}
-	if err := cmd.Wait(); err != nil {
-		result.Error = &ResultError{Err: err, CmdOutput: result.Output}
+	err = cmd.Wait()
+	if exitError, ok := err.(*exec.ExitError); ok {
+		result.Error = &ResultError{Err: err, ExitCode: exitError.ExitCode(), CmdOutput: result.Output}
 	}
 
 	return result
 }
-
-func (x *Dump) SetVerbose(verbose bool) {
-	x.verbose = verbose
+func (x *Dump) ResetOptions() {
+	x.Options = []string{}
 }
-func (x *Dump) GetVerbose() bool {
-	return x.verbose
+
+func (x *Dump) EnableVerbose() {
+	x.Verbose = true
+}
+
+func (x *Dump) SetFileName(filename string) {
+	x.fileName = filename
+}
+
+func (x *Dump) GetFileName() string {
+	if x.fileName == "" {
+		// Use default file name
+		x.fileName = x.newFileName()
+	}
+
+	return x.fileName
+}
+
+func (x *Dump) SetupFormat(f string) {
+	x.Format = &f
 }
 
 func (x *Dump) SetPath(path string) {
-	x.path = path
-}
-func (x *Dump) GetPath() string {
-	return x.path
-}
-
-func (x *Dump) SetFile(filename string) {
-	x.file = filename
-}
-func (x *Dump) GetFile() string {
-	if x.file == "" {
-		// Use default file name
-		x.file = x.newFileName()
-	}
-	return x.file
-}
-
-func (x *Dump) SetFormat(f string) {
-	x.format = f
-}
-func (x *Dump) GetFormat() string {
-	return x.format
-}
-
-func (x *Dump) SetOptions(o []string) {
-	x.options = o
-}
-func (x *Dump) GetOptions() []string {
-	return x.options
+	x.Path = path
 }
 
 func (x *Dump) newFileName() string {
-	return fmt.Sprintf(`%v_%v.sql`, x.DB, time.Now().Unix())
+	return fmt.Sprintf(`%v_%v.sql.tar.gz`, x.DB, time.Now().Unix())
 }
 
 func (x *Dump) dumpOptions() []string {
-	options := x.options
+	options := x.Options
 	options = append(options, x.Postgres.Parse()...)
 
-	if x.format != "" {
-		options = append(options, fmt.Sprintf(`--format=%v`, x.format))
+	if x.Format != nil {
+		options = append(options, fmt.Sprintf(`-F%v`, *x.Format))
 	} else {
-		options = append(options, fmt.Sprintf(`--format=%v`, DumpDefaultFormat))
+		options = append(options, fmt.Sprintf(`-F%v`, pgDumpDefaultFormat))
 	}
-	if x.verbose {
+	if x.Verbose {
 		options = append(options, "-v")
 	}
 	if len(x.IgnoreTableData) > 0 {
@@ -121,11 +114,11 @@ func (x *Dump) dumpOptions() []string {
 
 	return options
 }
-
 func (x *Dump) IgnoreTableDataToString() []string {
-	var t []string
+	t := []string{}
 	for _, tables := range x.IgnoreTableData {
 		t = append(t, "--exclude-table-data="+tables)
 	}
+
 	return t
 }

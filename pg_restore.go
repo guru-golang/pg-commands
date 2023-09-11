@@ -1,4 +1,4 @@
-package pg_commands
+package pgcommands
 
 import (
 	"fmt"
@@ -8,110 +8,86 @@ import (
 )
 
 var (
-	// RestoreCmd is the path to the `pg_restore` executable
-	RestoreCmd           = "pg_restore"
-	RestoreStdOpts       = []string{"--exit-on-error"}
-	RestoreDefaultFormat = "p" // p  c  d  t
+	// PGRestoreCmd is the path to the `pg_restore` executable
+	PGRestoreCmd      = "pg_restore"
+	pgDRestoreStdOpts = []string{"--no-owner", "--no-acl", "--clean", "--exit-on-error"}
 )
 
 type Restore struct {
 	*Postgres
-	// verbose mode
-	verbose bool
-	// role: do SET ROLE before restore
-	role string
-	// path: setup path for source restore
-	path string
-	// format: input file format (custom, directory, tar, plain text (default))
-	format string
+	// Verbose mode
+	Verbose bool
+	// Role: do SET ROLE before restore
+	Role string
+	// Path: setup path for source restore
+	Path string
 	// Extra pg_dump options
 	// e.g []string{"--inserts"}
-	options []string
-	// schemas: list of database schema
-	schemas []string
+	Options []string
+	// Schemas: list of database schema
+	Schemas []string
 }
 
-func NewRestore(pg *Postgres) *Restore {
-	return &Restore{options: RestoreStdOpts, Postgres: pg, schemas: []string{"public"}}
+func NewRestore(pg *Postgres) (*Restore, error) {
+	if !CommandExist(PGRestoreCmd) {
+		return nil, &ErrCommandNotFound{Command: PGRestoreCmd}
+	}
+
+	return &Restore{Options: pgDRestoreStdOpts, Postgres: pg, Schemas: []string{"public"}}, nil
 }
 
 // Exec `pg_restore` of the specified database, and restore from a gzip compressed tarball archive.
 func (x *Restore) Exec(filename string, opts ExecOptions) Result {
 	result := Result{}
-	options := append(x.restoreOptions(), fmt.Sprintf("%s%s", x.path, filename))
+	options := append(x.restoreOptions(), fmt.Sprintf("%s%s", x.Path, filename))
 	result.FullCommand = strings.Join(options, " ")
-	cmd := exec.Command(RestoreCmd, options...)
+	cmd := exec.Command(PGRestoreCmd, options...)
 	cmd.Env = append(os.Environ(), x.EnvPassword)
 	stderrIn, _ := cmd.StderrPipe()
-	go func() {
-		result.Output = streamExecOutput(stderrIn, opts)
-	}()
-
-	if err := cmd.Start(); err != nil {
+	go streamOutput(stderrIn, opts, &result)
+	err := cmd.Start()
+	if err != nil {
 		result.Error = &ResultError{Err: err, CmdOutput: result.Output}
 	}
-	if err := cmd.Wait(); err != nil {
-		result.Error = &ResultError{Err: err, CmdOutput: result.Output}
+	err = cmd.Wait()
+	if exitError, ok := err.(*exec.ExitError); ok {
+		result.Error = &ResultError{Err: err, ExitCode: exitError.ExitCode(), CmdOutput: result.Output}
 	}
 
 	return result
 }
 
-func (x *Restore) SetVerbose(verbose bool) {
-	x.verbose = verbose
+func (x *Restore) ResetOptions() {
+	x.Options = []string{}
 }
-func (x *Restore) GetVerbose() bool {
-	return x.verbose
+
+func (x *Restore) EnableVerbose() {
+	x.Verbose = true
 }
 
 func (x *Restore) SetPath(path string) {
-	x.path = path
-}
-func (x *Restore) GetPath() string {
-	return x.path
-}
-
-func (x *Restore) SetFormat(f string) {
-	x.format = f
-}
-func (x *Restore) GetFormat() string {
-	return x.format
-}
-
-func (x *Restore) SetOptions(o []string) {
-	x.options = o
-}
-func (x *Restore) GetOptions() []string {
-	return x.options
+	x.Path = path
 }
 
 func (x *Restore) SetSchemas(schemas []string) {
-	x.schemas = schemas
-}
-func (x *Restore) GetSchemas() []string {
-	return x.schemas
+	x.Schemas = schemas
 }
 
 func (x *Restore) restoreOptions() []string {
-	options := x.options
+	options := x.Options
 	options = append(options, x.Postgres.Parse()...)
 
-	if x.format != "" {
-		options = append(options, fmt.Sprintf(`--format=%v`, x.format))
-	} else {
-		options = append(options, fmt.Sprintf(`--format=%v`, RestoreDefaultFormat))
-	}
-	if x.role != "" {
-		options = append(options, fmt.Sprintf(`--role=%v`, x.role))
+	if x.Role != "" {
+		options = append(options, fmt.Sprintf(`--role=%v`, x.Role))
 	} else if x.DB != "" {
-		x.role = x.DB
+		x.Role = x.DB
 		options = append(options, fmt.Sprintf(`--role=%v`, x.DB))
 	}
 
-	if x.verbose {
+	if x.Verbose {
 		options = append(options, "-v")
 	}
-	for _, schema := range x.schemas {
+	for _, schema := range x.Schemas {
 		options = append(options, "--schema="+schema)
 	}
 
