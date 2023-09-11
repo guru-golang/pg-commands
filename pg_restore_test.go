@@ -7,8 +7,8 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	pg "github.com/habx/pg-commands"
-	"github.com/habx/pg-commands/tests/fixtures"
+	pg "github.com/guru-golang/pg-commands"
+	"github.com/guru-golang/pg-commands/tests/fixtures"
 )
 
 func TestNewRestoreWrongCommand(t *testing.T) {

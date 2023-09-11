@@ -10,16 +10,16 @@ import (
 const PostgresPort = 5432
 
 func Setup() *pg.Postgres {
-	pgHost := "localhost"
+	pgHost := "127.0.0.2"
 	if os.Getenv("HABX_ENV") == "test" && os.Getenv("CI") == "true" {
 		pgHost = "postgres"
 	}
 	config := &pg.Postgres{
 		Host:     pgHost,
 		Port:     PostgresPort,
-		DB:       "dev_example",
-		Username: "test",
-		Password: "azerty",
+		DB:       "test",
+		Username: "postgres",
+		Password: "rB4dRlyn38FGSth7XdHiNMEwWSYZY70B",
 	}
 	if os.Getenv("TEST_DB_HOST") != "" {
 		config.Host = os.Getenv("TEST_DB_HOST")

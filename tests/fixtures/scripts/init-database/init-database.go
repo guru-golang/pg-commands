@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-pg/pg/v10"
 
-	"github.com/habx/pg-commands/tests/fixtures"
+	"github.com/guru-golang/pg-commands/tests/fixtures"
 )
 
 func Init() {
@@ -19,7 +19,7 @@ func Init() {
 	db := pg.Connect(&pg.Options{
 		User:     config.Username,
 		Password: config.Password,
-		Database: "test-db",
+		Database: "test",
 		Addr:     config.Host + ":" + strconv.Itoa(config.Port),
 	})
 	defer db.Close()

@@ -8,10 +8,10 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	pg "github.com/habx/pg-commands"
-	"github.com/habx/pg-commands/tests/fixtures"
-	initdatabase "github.com/habx/pg-commands/tests/fixtures/scripts/init-database"
-	deps "github.com/habx/pg-commands/tests/fixtures/scripts/install-deps"
+	pg "github.com/guru-golang/pg-commands"
+	"github.com/guru-golang/pg-commands/tests/fixtures"
+	initdatabase "github.com/guru-golang/pg-commands/tests/fixtures/scripts/init-database"
+	deps "github.com/guru-golang/pg-commands/tests/fixtures/scripts/install-deps"
 )
 
 // nolint: gochecknoinits
@@ -66,7 +66,7 @@ func TestDump(t *testing.T) {
 		So(result.Error, ShouldBeNil)
 		So(result.FullCommand, ShouldNotBeEmpty)
 		So(result.File, ShouldNotBeEmpty)
-		So(result.Mine, ShouldEqual, "application/x-tar")
+		So(result.Mine, ShouldEqual, "application/sql")
 		So(result.FullCommand, ShouldEqual, fmt.Sprintf(
 			"--no-owner --no-acl --clean --blob --dbname=%s --host=%s --port=%d --username=%s -Fc -f%s",
 			pgSetup.DB,
@@ -87,7 +87,7 @@ func TestDump(t *testing.T) {
 		So(result.Error, ShouldBeNil)
 		So(result.FullCommand, ShouldNotBeEmpty)
 		So(result.File, ShouldNotBeEmpty)
-		So(result.Mine, ShouldEqual, "application/x-tar")
+		So(result.Mine, ShouldEqual, "application/sql")
 		So(result.FullCommand, ShouldEqual, fmt.Sprintf(
 			"--no-owner --no-acl --clean --blob --dbname=%s --host=%s --port=%d --username=%s -Fc --exclude-table-data=public.test_1 --exclude-table-data=public.test_1 -f%s",
 			pgSetup.DB,
@@ -107,7 +107,7 @@ func TestDump(t *testing.T) {
 		So(result.Error, ShouldBeNil)
 		So(result.FullCommand, ShouldNotBeEmpty)
 		So(result.File, ShouldNotBeEmpty)
-		So(result.Mine, ShouldEqual, "application/x-tar")
+		So(result.Mine, ShouldEqual, "application/sql")
 		So(result.FullCommand, ShouldEqual, fmt.Sprintf(
 			"--no-owner --no-acl --clean --blob --dbname=%s --host=%s --port=%d --username=%s -Ft -v -f%s",
 			pgSetup.DB,

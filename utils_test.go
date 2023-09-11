@@ -5,7 +5,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	pg "github.com/habx/pg-commands"
+	pg "github.com/guru-golang/pg-commands"
 )
 
 func CommandExistTest(t *testing.T) {

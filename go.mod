@@ -4,7 +4,6 @@ go 1.20
 
 require (
 	github.com/go-pg/pg/v10 v10.11.1
-	github.com/habx/pg-commands v0.6.1
 	github.com/smartystreets/goconvey v1.8.1
 )
 
