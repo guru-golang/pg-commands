@@ -1,6 +1,7 @@
 package pgcommands
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -44,7 +45,7 @@ func NewDump(pg *Postgres) (*Dump, error) {
 
 // Exec `pg_dump` of the specified database, and creates a gzip compressed tarball archive.
 func (x *Dump) Exec(opts ExecOptions) Result {
-	result := Result{Mine: "application/x-tar"}
+	result := Result{Mine: "application/sql"}
 	result.File = x.GetFileName()
 	options := append(x.dumpOptions(), fmt.Sprintf(`-f%s%v`, x.Path, result.File))
 	result.FullCommand = strings.Join(options, " ")
@@ -57,7 +58,8 @@ func (x *Dump) Exec(opts ExecOptions) Result {
 		result.Error = &ResultError{Err: err, CmdOutput: result.Output}
 	}
 	err = cmd.Wait()
-	if exitError, ok := err.(*exec.ExitError); ok {
+	var exitError *exec.ExitError
+	if errors.As(err, &exitError) {
 		result.Error = &ResultError{Err: err, ExitCode: exitError.ExitCode(), CmdOutput: result.Output}
 	}
 

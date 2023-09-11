@@ -1,6 +1,7 @@
 package pgcommands
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -50,7 +51,8 @@ func (x *Restore) Exec(filename string, opts ExecOptions) Result {
 		result.Error = &ResultError{Err: err, CmdOutput: result.Output}
 	}
 	err = cmd.Wait()
-	if exitError, ok := err.(*exec.ExitError); ok {
+	var exitError *exec.ExitError
+	if errors.As(err, &exitError) {
 		result.Error = &ResultError{Err: err, ExitCode: exitError.ExitCode(), CmdOutput: result.Output}
 	}
 
