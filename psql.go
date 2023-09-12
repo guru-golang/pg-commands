@@ -23,8 +23,6 @@ type Psql struct {
 	// Extra pg_dump options
 	// e.g []string{"--inserts"}
 	Options []string
-	// Schemas: list of database schema
-	Schemas []string
 }
 
 func NewPsql(pg *Postgres) (*Psql, error) {
@@ -32,7 +30,7 @@ func NewPsql(pg *Postgres) (*Psql, error) {
 		return nil, &ErrCommandNotFound{Command: psqlCmd}
 	}
 
-	return &Psql{Options: psqlStdOpts, Postgres: pg, Schemas: []string{"public"}}, nil
+	return &Psql{Options: psqlStdOpts, Postgres: pg}, nil
 }
 
 // Exec `pg_restore` of the specified database, and restore from a gzip compressed tarball archive.
@@ -69,19 +67,12 @@ func (x *Psql) SetPath(path string) {
 	x.Path = path
 }
 
-func (x *Psql) SetSchemas(schemas []string) {
-	x.Schemas = schemas
-}
-
 func (x *Psql) psqlOptions() []string {
 	options := x.Options
 	options = append(options, x.Postgres.Parse()...)
 
 	if x.Verbose {
 		options = append(options, "-v")
-	}
-	for _, schema := range x.Schemas {
-		options = append(options, "--schema="+schema)
 	}
 
 	return options
