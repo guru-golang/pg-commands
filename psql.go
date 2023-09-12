@@ -40,8 +40,9 @@ func (x *Psql) Exec(filename string, opts ExecOptions) Result {
 	result.FullCommand = strings.Join(options, " ")
 	cmd := exec.Command(psqlCmd, options...)
 	cmd.Env = append(os.Environ(), x.EnvPassword)
-	stderrIn, _ := cmd.StderrPipe()
-	go streamOutput(stderrIn, opts, &result)
+	stdErr, _ := cmd.StderrPipe()
+	stdIn, _ := cmd.StdinPipe()
+	go streamOutput(stdErr, stdIn, opts, &result)
 	err := cmd.Start()
 	if err != nil {
 		result.Error = &ResultError{Err: err, CmdOutput: result.Output}
