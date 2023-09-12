@@ -18,8 +18,6 @@ type Psql struct {
 	*Postgres
 	// Verbose mode
 	Verbose bool
-	// Role: do SET ROLE before restore
-	Role string
 	// Path: setup path for source restore
 	Path string
 	// Extra pg_dump options
@@ -78,13 +76,6 @@ func (x *Psql) SetSchemas(schemas []string) {
 func (x *Psql) psqlOptions() []string {
 	options := x.Options
 	options = append(options, x.Postgres.Parse()...)
-
-	if x.Role != "" {
-		options = append(options, fmt.Sprintf(`--role=%v`, x.Role))
-	} else if x.DB != "" {
-		x.Role = x.DB
-		options = append(options, fmt.Sprintf(`--role=%v`, x.DB))
-	}
 
 	if x.Verbose {
 		options = append(options, "-v")
