@@ -14,6 +14,7 @@ var (
 	PGDumpCmd           = "pg_dump"
 	pgDumpStdOpts       = []string{"--no-owner", "--no-acl", "--clean", "--blob"}
 	pgDumpDefaultFormat = "c"
+	pgDumpDefaultMine   = "sql"
 )
 
 // Dump is an `Exporter` interface that backs up a Postgres database via the `pg_dump` command.
@@ -23,6 +24,8 @@ type Dump struct {
 	Verbose bool
 	// Path: setup path dump out
 	Path string
+
+	Mine *string
 	// Format: output file format (custom, directory, tar, plain text (default))
 	Format *string
 	// Extra pg_dump x.FullOptions
@@ -45,7 +48,7 @@ func NewDump(pg *Postgres) (*Dump, error) {
 
 // Exec `pg_dump` of the specified database, and creates a gzip compressed tarball archive.
 func (x *Dump) Exec(opts ExecOptions) Result {
-	result := Result{Mine: "application/sql"}
+	result := Result{Mine: fmt.Sprintf("application/%v", x.Mine)}
 	result.File = x.GetFileName()
 	options := append(x.dumpOptions(), fmt.Sprintf(`-f%s%v`, x.Path, result.File))
 	result.FullCommand = strings.Join(options, " ")
@@ -107,6 +110,9 @@ func (x *Dump) dumpOptions() []string {
 	} else {
 		options = append(options, fmt.Sprintf(`-F%v`, pgDumpDefaultFormat))
 	}
+	if x.Mine != nil {
+		x.Mine = &pgDumpDefaultMine
+	}
 	if x.Verbose {
 		options = append(options, "-v")
 	}
@@ -117,7 +123,7 @@ func (x *Dump) dumpOptions() []string {
 	return options
 }
 func (x *Dump) IgnoreTableDataToString() []string {
-	t := []string{}
+	var t []string
 	for _, tables := range x.IgnoreTableData {
 		t = append(t, "--exclude-table-data="+tables)
 	}
