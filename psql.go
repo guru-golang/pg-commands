@@ -36,7 +36,7 @@ func NewPsql(pg *Postgres) (*Psql, error) {
 // Exec `pg_restore` of the specified database, and restore from a gzip compressed tarball archive.
 func (x *Psql) Exec(filename string, opts ExecOptions) Result {
 	result := Result{}
-	options := append(x.psqlOptions(), fmt.Sprintf("< %s%s", x.Path, filename))
+	options := append(x.psqlOptions(), fmt.Sprintf("> %s%s", x.Path, filename))
 	result.FullCommand = strings.Join(options, " ")
 	cmd := exec.Command(psqlCmd, options...)
 	cmd.Env = append(os.Environ(), x.EnvPassword)
