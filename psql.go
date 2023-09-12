@@ -11,7 +11,7 @@ import (
 var (
 	// PGRestoreCmd is the path to the `pg_restore` executable
 	psqlCmd     = "psql"
-	psqlStdOpts = []string{"--echo-errors", "--echo-queries", "--echo-hidden", "--single-step"}
+	psqlStdOpts = []string{"--echo-all"}
 )
 
 type Psql struct {
